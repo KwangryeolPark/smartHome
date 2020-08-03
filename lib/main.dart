@@ -178,6 +178,7 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   bool autoBlinder = true;
   bool blinder = true;
+  bool light = true;
 
   Timer timer;
 
@@ -299,6 +300,34 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
                               sendData("1", (blinder) ? "1" : "0");
                             });
                           }
+                        : null,
+                    value: this.blinder,
+                    focusColor: Colors.purple,
+                    activeColor: Colors.purple[900],
+                  ))
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Expanded(
+                flex: 2,
+                child: Icon(Icons.lightbulb_outline, color: (light) ? Colors.yellow : Colors.black,
+                    size: 40),
+              ),
+              Expanded(
+                flex: 9,
+                child: Text(((blinder) ? "조명 켜기" : "조명 끄기"),
+                    style: TextStyle(fontSize: 20)),
+              ),
+              Expanded(
+                  flex: 2,
+                  child: Switch(
+                    onChanged: (!this.autoBlinder)
+                        ? (bool value) {
+                      setState(() {
+                        this.blinder = value;
+                        debugPrint((blinder) ? "1" : "0");
+                        sendData("3", (blinder) ? "1" : "0");
+                      });
+                    }
                         : null,
                     value: this.blinder,
                     focusColor: Colors.purple,
