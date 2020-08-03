@@ -44,6 +44,7 @@ void setup() {
 String readString = "";
 bool blinderPos = false;  //기본 내리기
 bool autoBlinder = true;  //
+bool bulb = true;
 void loop() {
   // listen for incoming clients
   EthernetClient client = server.available();
@@ -84,6 +85,11 @@ void loop() {
                 case 2:
                   sendJsonData(&client, "OK2", "", "");
                   break;
+
+                case 3: //조명 관련
+                  if(Data - '0' == 1) bulb = true;
+                  else bulb = false;
+                break;
               }
             }
           }
