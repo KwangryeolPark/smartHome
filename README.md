@@ -1,16 +1,26 @@
 # flutterapp
 
-A new Flutter application.
+의뢰 물품에 관한 플로터 앱입니다.
+
+화면이 켜지면 데이터베이스에서 저장되어 있는 IP가 있는지 확인한 후 값을 가지고 옵니다.(또는 넣고 가지고 옵니다.)
+
+그 다음은 IP설정이며, 데이터베이스에 저장되어 있는 IP를 불러와 자동완성합니다.
+
+그 다음 화면은 블라인더를 자동으로 할지 안 할지와 수동모드일 경우 블라인더의 위치를 설정할 수 있는 화면입니다.
+
+일단 블라인더 오토, 위치 관련해서 스위치 위치에 따라 아이콘이 변하고, 동시에 IP주소에 해당하는 곳으로 HTTP POST통신으로 데이터를 보낸 후 아두이노에서는 값을 받습니다.
+
+
+또한 아두이노의 상태를 알아보기 위해 Timer 객체를 사용하여 10초마다 서버로 데이터를 보내고 값을 받아옵니다.
+
+
+AppLifecycleState를 통해 앱이 화면에 보이면 Timer를 가동하고, foreground service는 비활성화합니다.
+반대로 앱이 화면에 안 보이면 Timer를 중단하고 foreground service를 활성화하여 10초마다 HTTP GET(POST는 안 먹혔음)를 합니다.
+
+
+
+노티피케이션은 채널을 2개로 나눠 하나는 화제 경보, 나머지는 침입자 경보를 울리는 용도로 사용됩니다.
+
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
