@@ -179,6 +179,8 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
   bool autoBlinder = true;
   bool blinder = true;
   bool light = true;
+  String rawData = null;
+  JsonData data = new JsonData(Status1: '0', Status2: '0');
 
   Timer timer;
 
@@ -187,14 +189,17 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     timer = new Timer.periodic(Duration(seconds:10), (Timer timer) async {
-      String data = await sendData("2", "0");
-      if(data != null) {
-        JsonData jsonData = await fetch(data);
-        if(jsonData.Status1 == "onFire") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
-        if(jsonData.Status2 == "intruder") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다.");
+      debugPrint("Timer occured");
+      await sendData("2", "0");
+      debugPrint("Received data : $rawData");
+      if(rawData != null) {
+        JsonData jsonData = await fetch(rawData);
+        if(jsonData.Status1 == "1") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
+        if(jsonData.Status2 == "1") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다.");
         debugPrint(jsonData.toString());
       }
     });
+
     //init();
   }
 
@@ -224,11 +229,13 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
         case AppLifecycleState.resumed:
           FlutterForegroundPlugin.stopForegroundService();
           timer = new Timer.periodic(Duration(seconds:10), (Timer timer) async {
+            debugPrint("Timer occured");
             String data = await sendData("2", "0");
+            debugPrint("Received data : $data");
             if(data != null) {
               JsonData jsonData = await fetch(data);
-              if(jsonData.Status1 == "onFire") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
-              if(jsonData.Status2 == "intruder") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다.");
+              if(jsonData.Status1 == "1") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
+              if(jsonData.Status2 == "1") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다.");
             }
           });
           break;
@@ -314,25 +321,41 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
               ),
               Expanded(
                 flex: 9,
-                child: Text(((blinder) ? "조명 켜기" : "조명 끄기"),
+                child: Text(((light) ? "조명 켜기" : "조명 끄기"),
                     style: TextStyle(fontSize: 20)),
               ),
               Expanded(
                   flex: 2,
                   child: Switch(
-                    onChanged: (!this.autoBlinder)
-                        ? (bool value) {
+                    onChanged: (bool value) {
                       setState(() {
-                        this.blinder = value;
-                        debugPrint((blinder) ? "1" : "0");
-                        sendData("3", (blinder) ? "1" : "0");
+                        this.light = value;
+                        debugPrint((light) ? "1" : "0");
+                        sendData("3", (light) ? "1" : "0");
                       });
-                    }
-                        : null,
-                    value: this.blinder,
+                    },
+                    value: this.light,
                     focusColor: Colors.purple,
                     activeColor: Colors.purple[900],
                   ))
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Expanded(
+                flex: 1,
+                child: Text("방화 시스템 : ")
+              ),
+              Expanded(
+                flex: 1,
+                child: Text(data.Status1),
+              ),
+              Expanded(
+                  flex: 1,
+                  child: Text("방범 시스템 : ")
+              ),
+              Expanded(
+                flex: 1,
+                child: Text(data.Status2),
+              ),
             ])
           ],
         ));
@@ -346,11 +369,12 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
       );
 
       setState(() {
-        debugPrint(response.body);
+        rawData = response.body;
+       debugPrint("raw"+rawData);
 /*        scaffoldKey.currentState.showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 2000),
-            content: Text('Received data : ' + response.body)));*/
-        return response.body;
+            content: Text('Received data : ' + response.body)));*///response.body;
+//        return rawData;
       });
     } catch (error) {
       scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -360,6 +384,8 @@ class _MainRoute extends State<MainRoute> with WidgetsBindingObserver {
   }
   Future<JsonData> fetch(String data) async {
     JsonData jsonData = JsonData.fromJson(jsonDecode(data));
+    this.data = jsonData;
+    debugPrint("Data:" + jsonData.toString());
     return jsonData;
   }
 }
@@ -385,24 +411,22 @@ Future globalForegroundService() async {
   try {
     String Message = "";
     debugPrint("Data transport to " + 'http://${systemConfiguration['targetIP'].status}/');
-    Future<String> readData() async {
-      final response = await http.get(
-        'http://${systemConfiguration['targetIP'].status}/'
-      );
-      return response.body;
-    }
+
     Future<JsonData> fetch(String data) async {
       JsonData jsonData = JsonData.fromJson(jsonDecode(data));
       return jsonData;
     }
 
-    String data = await readData();
+    final response = await http.get(
+        'http://${systemConfiguration['targetIP'].status}/'
+    );
+    String data = response.body;
     if(data != null) {
       JsonData jsonData = await fetch(data);
 
       debugPrint("Received data : ${jsonData.toString()}");
-      if(jsonData.Status1 == "onFire") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
-      if(jsonData.Status2 == "intruder") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다!!");
+      if(jsonData.Status1 == "1") showNotification1("재난 알림", "현재 집에 불이 난 것같습니다!!");
+      if(jsonData.Status2 == "1") showNotification2("침입자 알림", "현재 집에 침입자가 있습니다!!");
     }
   } catch (error) {
     debugPrint(error.toString());
